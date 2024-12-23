@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список Книг</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            text-align: center;
+        }
+        .book {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            background-color: #fff;
+        }
+        #addBookForm {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #message {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Список Книг</h1>
+    <div id="bookList"></div>
+    <div id="message"></div>
+
+    <script>
+        const token = localStorage.getItem('authData') ? JSON.parse(localStorage.getItem('authData')).token : null;
+
+        const fetchBooks = async () => {
+            const response = await fetch('http://localhost:3000/admin/books', {
+                method: 'GET',
+                headers: {
+                    'token': token,
+                }
+            }); 
+
+            if (response.ok) {
+                const data = await response.json();
+                displayBooks(data.result);
+            } else {
+                document.getElementById('message').textContent = 'Ошибка получения списка книг.';
+            }
+        };
+
+        const displayBooks = (books) => {
+            const bookList = document.getElementById('bookList');
+            bookList.innerHTML = '';
+
+            books.forEach(book => {
+                const bookDiv = document.createElement('div');
+                bookDiv.className = 'book';
+                bookDiv.innerHTML = `${book.name} - ${book.author} 
+                <select onchange="updateBookStatus(${book.id}, this.value)">
+                    <option value="" disabled selected>Выберите статус</option>
+                    <option value="available">Доступно</option>
+                    <option value="borrowed">На руках</option>
+                    <option value="reserved">Забронировано</option>
+                </select>`;
+                bookList.appendChild(bookDiv);
+            });
+        };
+
+        const updateBookStatus = async (bookId, newStatus) => {
+            if (!newStatus) return;
+
+            const response = await fetch(`http://localhost:3000/admin/books/${bookId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'token': token,
+                },
+                body: JSON.stringify({ status: newStatus })
+            });
+
+            if (response.ok) {
+                document.getElementById('message').textContent = 'Статус книги обновлен!';
+                fetchBooks(); // Обновим список книг после изменения статуса
+            } else {
+                document.getElementById('message').textContent = 'Ошибка обновления статуса.';
+            }
+        };
+
+        fetchBooks(); // Загружаем книги при загрузке страницы
+    </script>
+</body>
+</html>

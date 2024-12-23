@@ -1,0 +1,57 @@
+# @name project
+
+@baseUrl = http://localhost:3000
+
+POST {{baseUrl}}/register
+Content-Type: application/json; charset=utf-8
+Accept: application/json; charset=utf-8
+
+{
+    "login" : "login",
+    "password" : " test",
+    "email" : "email@email.ru",
+    "phone" : "999 111 22 33",
+    "full_name" : "her her her"
+}
+
+###
+
+POST {{baseUrl}}/login
+Content-Type: application/json; charset=utf-8
+Accept: application/json; charset=utf-8
+
+{
+    "login" : "login",
+    "password" : " test"
+}
+
+###
+
+@accessToken = 9e97a40b-7755-4e0a-adc9-e4df6635c2e6
+
+###
+
+POST {{baseUrl}}/book
+Content-Type: application/json; charset=utf-8
+Token: {{accessToken}}
+Accept: application/json; charset=utf-8
+
+{
+    "name" : "Book",
+    "author" : "Pushkin",
+}
+
+###
+
+GET {{baseUrl}}/books
+Content-Type: application/json; charset=utf-8
+Token: {{accessToken}}
+Accept: application/json; charset=utf-8
+
+###
+
+GET {{baseUrl}}/admin/books
+Content-Type: application/json; charset=utf-8
+Token: 1b5a25fb-d10b-4f79-a770-0d920e456039
+Accept: application/json; charset=utf-8
+ 

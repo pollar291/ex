@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список Книг</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            text-align: center;
+        }
+        .book {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            background-color: #fff;
+        }
+        #addBookForm {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #message {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Список Книг</h1>
+    <div id="bookList"></div>
+    <div id="message"></div>
+
+    <h2>Добавить новую книгу</h2>
+    <form id="addBookForm">
+        <label for="bookName">Название книги:</label>
+        <input type="text" id="bookName" required>
+        <label for="bookAuthor">Автор:</label>
+        <input type="text" id="bookAuthor" required>
+        <button type="submit">Добавить книгу</button>
+    </form>
+
+    <script>
+        const token = localStorage.getItem('authData') ? JSON.parse(localStorage.getItem('authData')).token : null;
+
+        const fetchBooks = async () => {
+            const response = await fetch('http://localhost:3000/books', {
+                method: 'GET',
+                headers: {
+                    'token': token,
+                }
+            }); 
+
+            if (response.ok) {
+                const data = await response.json();
+                displayBooks(data.books);
+            } else {
+                document.getElementById('message').textContent = 'Ошибка получения списка книг.';
+            }
+        };
+
+        const displayBooks = (books) => {
+            const bookList = document.getElementById('bookList');
+            bookList.innerHTML = '';
+
+            books.forEach(book => {
+                const bookDiv = document.createElement('div');
+                bookDiv.className = 'book';
+                bookDiv.textContent = `${book.name} - ${book.author}`;
+                bookList.appendChild(bookDiv);
+            });
+        };
+
+        document.getElementById('addBookForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const name = document.getElementById('bookName').value;
+            const author = document.getElementById('bookAuthor').value;
+
+            const response = await fetch('http://localhost:3000/book', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'token': token,
+                },
+                body: JSON.stringify({ name, author })
+            });
+
+            const messageDiv = document.getElementById('message');
+            if (response.ok) {
+                messageDiv.textContent = 'Книга успешно добавлена!';
+                fetchBooks(); // Обновляем список книг
+                document.getElementById('addBookForm').reset(); // Сброс формы
+            } else {
+                const data = await response.json();
+                messageDiv.textContent = data.message || 'Ошибка при добавлении книги.';
+            }
+        });
+
+        fetchBooks(); // Загружаем книги при загрузке страницы
+    </script>
+</body>
+</html>
